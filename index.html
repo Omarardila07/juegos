@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jueguito</title>
+    <style>
+        #jugador {
+            width: 50px;
+            height: 50px;
+            background-color: blue;
+            position: absolute;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="jugador"></div>
+    <script>
+        var jugador = document.getElementById('jugador');
+        var posicionJugador = 0;
+        var velocidadJugador = 10;
+
+        function moverJugador(direccion) {
+            if (direccion === 'izquierda') {
+                posicionJugador -= velocidadJugador;
+            } else if (direccion === 'derecha') {
+                posicionJugador += velocidadJugador;
+            }
+
+            jugador.style.left = posicionJugador + 'px';
+        }
+
+        function generarObjeto() {
+            var objeto = document.createElement('div');
+            objeto.style.width = '30px';
+            objeto.style.height = '30px';
+            objeto.style.backgroundColor = 'red';
+            objeto.style.position = 'absolute';
+            objeto.style.top = '0';
+            objeto.style.left = Math.random() * window.innerWidth + 'px';
+
+            document.body.appendChild(objeto);
+
+            var animacion = setInterval(function() {
+                var posicionObjeto = parseInt(objeto.style.top);
+                if (posicionObjeto >= window.innerHeight - 30) {
+                    clearInterval(animacion);
+                    document.body.removeChild(objeto);
+                } else {
+                    objeto.style.top = (posicionObjeto + 5) + 'px';
+                }
+
+                var rectJugador = jugador.getBoundingClientRect();
+                var rectObjeto = objeto.getBoundingClientRect();
+                if (rectJugador.left < rectObjeto.right && rectJugador.right > rectObjeto.left &&
+                    rectJugador.top < rectObjeto.bottom && rectJugador.bottom > rectObjeto.top) {
+                    alert('Game Over');
+                    clearInterval(animacion);
+                    document.body.removeChild(objeto);
+                }
+            }, 30);
+        }
+
+        setInterval(generarObjeto, 2000);
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft') {
+                moverJugador('izquierda');
+            } else if (event.key === 'ArrowRight') {
+                moverJugador('derecha');
+            }
+        });
+    </script>
+</body>
+</html>
