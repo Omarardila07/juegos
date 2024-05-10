@@ -5,64 +5,238 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jueguito</title>
     <style>
+        body {
+            background-color: black;
+        }
+
         #jugador {
             width: 50px;
             height: 50px;
-            background-color: blue;
+            background-color: white;
             position: absolute;
             bottom: 0;
+        }
+
+        #tiempo {
+            color: white;
+            font-size: 20px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        #nivel {
+            color: white;
+            font-size: 20px;
+            position: absolute;
+            top: 40px;
+            left: 10px;
+        }
+
+        #corazones {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .corazon {
+            width: 30px;
+            height: 30px;
+            fill: #ff2825;
+            margin-right: 5px;
+        }
+
+        .popup-nivel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div id="jugador"></div>
+    <div id="tiempo">Tiempo restante: 180s</div>
+    <div id="nivel">Nivel: 1</div>
+    <div id="corazones">
+        <svg class="corazon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <svg class="corazon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <svg class="corazon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </div>
+    <div id="popupNivel2" class="popup-nivel">
+        <h2>¡Felicidades!</h2>
+        <p>Has llegado al Nivel Medio</p>
+        <button id="btnNivel2">Continuar</button>
+    </div>
+    <div id="popupNivel3" class="popup-nivel">
+        <h2>¡Felicidades!</h2>
+        <p>Has llegado al Nivel Imposible</p>
+        <button id="btnNivel3">Continuar</button>
+    </div>
     <script>
         var jugador = document.getElementById('jugador');
         var posicionJugador = 0;
         var velocidadJugador = 10;
+        var tiempoRestante = 180;
+        var generadorObjetos;
+        var vidas = 3;
+        var corazones = document.querySelectorAll('#corazones svg');
+        var popupNivel2 = document.getElementById('popupNivel2');
+        var btnNivel2 = document.getElementById('btnNivel2');
+        var popupNivel3 = document.getElementById('popupNivel3');
+        var btnNivel3 = document.getElementById('btnNivel3');
+        var pausado = false;
+        var nivel = 1;
 
         function moverJugador(direccion) {
-            if (direccion === 'izquierda') {
-                posicionJugador -= velocidadJugador;
-            } else if (direccion === 'derecha') {
-                posicionJugador += velocidadJugador;
+            if (!pausado) {
+                if (direccion === 'izquierda' && posicionJugador > 0) {
+                    posicionJugador -= velocidadJugador;
+                } else if (direccion === 'derecha' && posicionJugador < window.innerWidth - 50) {
+                    posicionJugador += velocidadJugador;
+                }
+                jugador.style.left = posicionJugador + 'px';
             }
-
-            jugador.style.left = posicionJugador + 'px';
         }
 
         function generarObjeto() {
-            var objeto = document.createElement('div');
-            objeto.style.width = '30px';
-            objeto.style.height = '30px';
-            objeto.style.backgroundColor = 'red';
-            objeto.style.position = 'absolute';
-            objeto.style.top = '0';
-            objeto.style.left = Math.random() * window.innerWidth + 'px';
+            if (!pausado) {
+                var objeto = document.createElement('div');
+                objeto.style.width = '30px';
+                objeto.style.height = '30px';
+                objeto.style.backgroundColor = 'red';
+                objeto.style.position = 'absolute';
+                objeto.style.top = '0';
+                objeto.style.left = Math.random() * window.innerWidth + 'px';
 
-            document.body.appendChild(objeto);
+                document.body.appendChild(objeto);
 
-            var animacion = setInterval(function() {
-                var posicionObjeto = parseInt(objeto.style.top);
-                if (posicionObjeto >= window.innerHeight - 30) {
-                    clearInterval(animacion);
-                    document.body.removeChild(objeto);
-                } else {
-                    objeto.style.top = (posicionObjeto + 5) + 'px';
-                }
+                var animacion = setInterval(function() {
+                    var posicionObjeto = parseInt(objeto.style.top);
+                    if (posicionObjeto >= window.innerHeight - 30) {
+                        clearInterval(animacion);
+                        document.body.removeChild(objeto);
+                    } else {
+                        objeto.style.top = (posicionObjeto + 5) + 'px';
+                    }
 
-                var rectJugador = jugador.getBoundingClientRect();
-                var rectObjeto = objeto.getBoundingClientRect();
-                if (rectJugador.left < rectObjeto.right && rectJugador.right > rectObjeto.left &&
-                    rectJugador.top < rectObjeto.bottom && rectJugador.bottom > rectObjeto.top) {
-                    alert('Game Over');
-                    clearInterval(animacion);
-                    document.body.removeChild(objeto);
-                }
-            }, 30);
+                    var rectJugador = jugador.getBoundingClientRect();
+                    var rectObjeto = objeto.getBoundingClientRect();
+                    if (rectJugador.left < rectObjeto.right && rectJugador.right > rectObjeto.left &&
+                        rectJugador.top < rectObjeto.bottom && rectJugador.bottom > rectObjeto.top) {
+                        perderVida();
+                        clearInterval(animacion);
+                        document.body.removeChild(objeto);
+                    }
+                }, 30);
+            }
         }
 
-        setInterval(generarObjeto, 2000);
+        function perderVida() {
+            vidas--;
+            actualizarCorazones();
+            if (vidas === 0) {
+                alert('Perdiste todas las vidas. ¡Game Over!');
+                reiniciarJuego();
+            }
+        }
+
+        function actualizarCorazones() {
+            for (var i = 0; i < corazones.length; i++) {
+                if (i < vidas) {
+                    corazones[i].style.display = 'inline-block';
+                } else {
+                    corazones[i].style.display = 'none';
+                }
+            }
+        }
+
+        function mostrarPopupNivel2() {
+            pausarJuego();
+            popupNivel2.style.display = 'block';
+            btnNivel2.addEventListener('click', function() {
+                nivel = 2;
+                ocultarPopupNivel2();
+                continuarJuego();
+            });
+        }
+
+        function mostrarPopupNivel3() {
+            pausarJuego();
+            popupNivel3.style.display = 'block';
+            btnNivel3.addEventListener('click', function() {
+                nivel = 3;
+                ocultarPopupNivel3();
+                continuarJuego();
+            });
+        }
+
+        function ocultarPopupNivel2() {
+            popupNivel2.style.display = 'none';
+        }
+
+        function ocultarPopupNivel3() {
+            popupNivel3.style.display = 'none';
+        }
+
+        function pausarJuego() {
+            pausado = true;
+        }
+
+        function continuarJuego() {
+            pausado = false;
+        }
+
+        function reiniciarJuego() {
+            clearInterval(generadorObjetos);
+            tiempoRestante = 180;
+            nivel = 1;
+            document.getElementById('nivel').textContent = 'Nivel: ' + nivel;
+            velocidadJugador = 10;
+            vidas = 3;
+            actualizarCorazones();
+            jugador.style.left = '0px';
+            document.getElementById('tiempo').textContent = 'Tiempo restante: ' + tiempoRestante + 's'; // Actualizar texto del tiempo
+            generadorObjetos = setInterval(generarObjeto, 2000); // Reiniciar generación de objetos
+        }
+
+        generadorObjetos = setInterval(generarObjeto, 2000); // Iniciar generación de objetos
+        setInterval(actualizarTiempo, 1000); // Actualizar tiempo cada segundo
+
+        function actualizarTiempo() {
+            if (!pausado) {
+                tiempoRestante--;
+                document.getElementById('tiempo').textContent = 'Tiempo restante: ' + tiempoRestante + 's';
+                if (tiempoRestante <= 0) {
+                    clearInterval(generadorObjetos);
+                    alert('Tiempo agotado. ¡Game Over!');
+                    reiniciarJuego();
+                } else if (tiempoRestante === 120) { // Segundo minuto
+                    aumentarVelocidadObjetos();
+                } else if (tiempoRestante === 60) { // Tercer minuto
+                    aumentarTamanoObjetos();
+                }
+            }
+        }
+
+        function aumentarVelocidadObjetos() {
+            clearInterval(generadorObjetos);
+            velocidadJugador = 15; // Aumentar velocidad de caída
+            generadorObjetos = setInterval(generarObjeto, 1500); // Generar objetos más rápido
+        }
+
+        function aumentarTamanoObjetos() {
+            var objetos = document.querySelectorAll('div');
+            objetos.forEach(function(objeto) {
+                objeto.style.width = '30px'; // Aumentar tamaño de los objetos
+                objeto.style.height = '30px';
+            });
+        }
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'ArrowLeft') {
